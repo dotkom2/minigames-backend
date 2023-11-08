@@ -79,6 +79,7 @@ async function findScores(req, res) {
       }
       if (game) {
         gameIdsAndScores.push({ game, score, isWinner });
+
       }
 
     }
