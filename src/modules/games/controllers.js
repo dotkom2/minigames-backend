@@ -1,4 +1,5 @@
 const { Games } = require("../../models/Games");
+const cron = require('node-cron');
 
 async function createGame(req, res) {
   try {
@@ -76,12 +77,36 @@ async function findAllGames(req, res) {
     return res.status(500).json({ message: 'Internal server error' });
   }
 }
+// datetime_start :"2023-11-01T19:42:03.000Z"
+// datetime_end: "2023-11-10T00:00:00.000Z"
+
+async function updateGameDateTime() {
+  try {
+    const gamesToUpdate = await Games.find({ datetime_end: { $lt: new Date() } });
+    gamesToUpdate.forEach(async (game) => {
+      const newDatetimeStart = new Date();
+      const newDatetimeEnd = new Date(new Date().getTime() + 72 * 60 * 60 * 1000);
+      await Games.findByIdAndUpdate(game._id, {
+        datetime_start: newDatetimeStart,
+        datetime_end: newDatetimeEnd,
+        game_round: 1
+      });
+      console.log(`Updated game with ID: ${game._id}`);
+    });
+    console.log('Game datetimes updated successfully');
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+cron.schedule('*/5 * * * * *', () => {
+  updateGameDateTime();
+});
 
 
 
-
-module.exports={
-    createGame,
-    findGame,
-    findAllGames
+module.exports = {
+  createGame,
+  findGame,
+  findAllGames
 }
